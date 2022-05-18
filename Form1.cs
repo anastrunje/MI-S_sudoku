@@ -13,6 +13,8 @@ namespace Sudoku
 {
     public partial class Form1 : Form
     {
+        SpeechRecognitionEngine recognizer;
+
         public Form1()
         {
             InitializeComponent();
@@ -229,6 +231,75 @@ namespace Sudoku
         private void newGameButton_Click(object sender, EventArgs e)
         {
             startNewGame();
+        }
+
+        private void loadSpeechRecognition()
+        {
+            recognizer = new SpeechRecognitionEngine(new System.Globalization.CultureInfo("en-US"));
+
+            var c = getChoiceLibrary();
+            var gp = new GrammarBuilder(c);
+            var g = new Grammar(gp);
+            // Create and load a dictation grammar.  
+            recognizer.LoadGrammar(g);
+
+            // Add a handler for the speech recognized event.  
+            recognizer.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(recognizer_SpeechRecognized);
+
+            // Configure input to the speech recognizer.  
+            recognizer.SetInputToDefaultAudioDevice();
+
+            // Start asynchronous, continuous speech recognition.  
+            recognizer.RecognizeAsync(RecognizeMode.Multiple);
+        }
+
+        static void recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        {
+            switch(e.Result.Text)
+            {
+                case "one":
+                    kurac(,"1");
+            }
+        }
+
+        private Choices getChoiceLibrary()
+        {
+            Choices myChoices = new Choices();
+
+            myChoices.Add("one");
+            myChoices.Add("two");
+            myChoices.Add("three");
+            myChoices.Add("four");
+            myChoices.Add("five");
+            myChoices.Add("six");
+            myChoices.Add("seven");
+            myChoices.Add("eight");
+            myChoices.Add("nine");
+
+            return myChoices;
+        }
+
+        private void kurac(object sender, string x)
+        {
+            var cell = sender as SudokuCell;
+
+            // Do nothing if the cell is locked
+            if (cell.IsLocked)
+                return;
+
+            int value;
+
+            // Add the pressed key value in the cell only if it is a number
+            if (int.TryParse(x, out value))
+            {
+                // Clear the cell value if pressed key is zero
+                if (value == 0)
+                    cell.Clear();
+                else
+                    cell.Text = value.ToString();
+
+                cell.ForeColor = SystemColors.ControlDarkDark;
+            }
         }
     }
 }
